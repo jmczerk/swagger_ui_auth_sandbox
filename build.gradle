@@ -1,0 +1,62 @@
+plugins {
+    id 'idea'
+    id 'java'
+
+    id 'org.springframework.boot' version '2.5.0'
+    id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id "org.hidetake.swagger.generator" version "2.18.2"
+}
+
+group = 'bio.terra'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // OpenAPI (swagger) deps
+    implementation group: 'io.swagger.core.v3', name: 'swagger-annotations', version: '2.1.6'
+    swaggerCodegen group: 'io.swagger.codegen.v3', name: 'swagger-codegen-cli', version: '3.0.23'
+
+    swaggerUI 'org.webjars:swagger-ui:3.49.0'
+
+    implementation group: "org.webjars", name: "webjars-locator-core", version: "0.46"
+    implementation group: "javax.validation", name: "validation-api"
+}
+
+test {
+    useJUnitPlatform()
+}
+
+// OpenAPI/Swagger Server Generation
+swaggerSources {
+    server {
+        inputFile = file("${rootDir}/src/main/resources/api/openapi.yaml")
+        code {
+            language = "spring"
+            library = "spring-boot"
+            outputDir = file("${buildDir}/openapi")
+            components = ["models", "apis"]
+            rawOptions = [
+                    "--api-package", "${group}.swagger-oidc.generated.controller",
+                    "--model-package", "${group}.swagger-oidc.generated.model",
+                    "--model-name-prefix", "Api",
+                    "-D", "interfaceOnly=true," +
+                            "useTags=true," +
+                            "dateLibrary=java8"
+            ]
+        }
+    }
+}
+
+sourceSets.main.java.srcDir file("${buildDir}/openapi/src/main/java")
+sourceSets.main.resources.srcDir file("${buildDir}/swagger-ui-server")
+
+compileJava.dependsOn swaggerSources.server.code
+processResources.dependsOn generateSwaggerUI
+build.dependsOn generateSwaggerUI

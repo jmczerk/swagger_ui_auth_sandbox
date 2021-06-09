@@ -1,0 +1,48 @@
+openapi: 3.0.2
+info:
+  version: '0.0.1'
+  title: 'OIDC Sandbox'
+paths:
+  /api/user/{username}:
+    get:
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: success
+          content: {}
+components:
+  securitySchemes:
+    googleImplicitOauth2:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: https://accounts.google.com/o/oauth2/auth
+          scopes:
+            openid: open id authorization
+            email: email authorization
+            profile: profile authorization
+      x-tokenName: id_token
+    googleCodeOauth2:
+      type: oauth2
+      flows:
+        authorizationCode:
+          authorizationUrl: https://accounts.google.com/o/oauth2/auth
+          tokenUrl: https://oauth2.googleapis.com/token
+          scopes:
+            openid: open id authorization
+            email: email authorization
+            profile: profile authorization
+      x-tokenName: id_token
+    googleOpenId:
+      type: openIdConnect
+      openIdConnectUrl: https://accounts.google.com/.well-known/openid-configuration
+      x-tokenName: id_token
+security:
+  - googleImplicitOauth2: [openid, email, profile]
+  - googleCodeOauth2: [openid, email, profile]
+  - googleOpenId: [openid, email, profile]
